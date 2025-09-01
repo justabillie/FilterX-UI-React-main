@@ -160,6 +160,53 @@ function Profile() {
     }
   };
 
+  const handleLikeComment = async (commentId) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/social/comments/${commentId}/likes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id
+        })
+      });
+
+      if (response.ok) {
+        // Reload user posts to get updated comment likes
+        loadUserPosts();
+      }
+    } catch (error) {
+      console.error('Error liking comment:', error);
+    }
+  };
+
+  const handleReplyToComment = async (commentId, replyText) => {
+    if (!replyText.trim()) return;
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/social/comments/${commentId}/replies`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: replyText,
+          userId: user.id
+        })
+      });
+
+      if (response.ok) {
+        // Reload user posts to get updated replies
+        loadUserPosts();
+      } else {
+        alert("Failed to add reply");
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="hp-container">
@@ -277,6 +324,8 @@ function Profile() {
                     onDeletePost={handleDeletePost}
                     onLikePost={handleLikePost}
                     onCommentPost={handleCommentPost}
+                    onLikeComment={handleLikeComment}
+                    onReplyToComment={handleReplyToComment}
                   />
                 ))
               ) : (
@@ -294,7 +343,7 @@ function Profile() {
   );
 }
 
-function ProfilePost({ post, user, onDeletePost, onLikePost, onCommentPost }) {
+function ProfilePost({ post, user, onDeletePost, onLikePost, onCommentPost, onLikeComment, onReplyToComment }) {
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [commentText, setCommentText] = useState("");
 
@@ -384,23 +433,129 @@ function ProfilePost({ post, user, onDeletePost, onLikePost, onCommentPost }) {
       {post.comments && post.comments.length > 0 && (
         <section className="hp-comments mt-3">
           {post.comments.map((comment) => (
-            <div key={comment.id} className="hp-comment mb-2 p-2 border rounded">
+            <ProfileComment
+              key={comment.id}
+              comment={comment}
+              onLikeComment={onLikeComment}
+              onReplyToComment={onReplyToComment}
+            />
+          ))}
+        </section>
+      )}
+    </article>
+  );
+}
+
+function ProfileComment({ comment, onLikeComment, onReplyToComment }) {
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [showReplies, setShowReplies] = useState(false);
+
+  const submitReply = () => {
+    if (replyText.trim()) {
+      onReplyToComment(comment.id, replyText);
+      setReplyText("");
+      setShowReplyBox(false);
+    }
+  };
+
+  return (
+    <article className="hp-comment mb-2 p-2 border rounded">
+      <div className="d-flex align-items-center">
+        <img
+          src="https://i.pinimg.com/736x/54/c7/c3/54c7c36c20ced3eb982c4e3e21f465fe.jpg"
+          alt="Profile"
+          className="hp-profile-mini me-2"
+          style={{width: "30px", height: "30px"}}
+        />
+        <strong className="hp-username me-2">{comment.user?.username || "User"}:</strong>
+        <span>{comment.content}</span>
+      </div>
+      <small className="text-muted">
+        {new Date(comment.createdAt).toLocaleString()}
+      </small>
+
+      {/* Comment Actions */}
+      <div className="d-flex gap-2 mt-2">
+        <button
+          className="hp-btn hp-btn-outline-success btn-sm"
+          title="Like comment"
+          onClick={() => onLikeComment(comment.id)}
+        >
+          <i className="bi bi-hand-thumbs-up"></i> ({comment.likes?.length || 0})
+        </button>
+        <button
+          className="hp-btn hp-btn-outline-secondary btn-sm"
+          title="Reply"
+          onClick={() => setShowReplyBox(!showReplyBox)}
+        >
+          <i className="bi bi-reply"></i> Reply
+        </button>
+        {comment.replies && comment.replies.length > 0 && (
+          <button
+            className="hp-btn hp-btn-outline-info btn-sm"
+            onClick={() => setShowReplies(!showReplies)}
+          >
+            <i className="bi bi-chat"></i> {comment.replies.length} {showReplies ? 'Hide' : 'Show'} replies
+          </button>
+        )}
+      </div>
+
+      {/* Reply Box */}
+      {showReplyBox && (
+        <div className="hp-reply-box mt-2">
+          <textarea
+            className="form-control mb-2"
+            placeholder="Write a reply..."
+            rows="1"
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitReply();
+              }
+            }}
+          ></textarea>
+          <div className="d-flex gap-2">
+            <button
+              className="hp-btn hp-btn-outline-secondary btn-sm"
+              onClick={() => setShowReplyBox(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="hp-btn hp-btn-glass btn-sm"
+              onClick={submitReply}
+              disabled={!replyText.trim()}
+            >
+              <i className="bi bi-send me-1"></i>Reply
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Replies */}
+      {showReplies && comment.replies && comment.replies.length > 0 && (
+        <div className="hp-replies mt-2">
+          {comment.replies.map((reply) => (
+            <div key={reply.id} className="hp-reply mb-1">
               <div className="d-flex align-items-center">
                 <img
                   src="https://i.pinimg.com/736x/54/c7/c3/54c7c36c20ced3eb982c4e3e21f465fe.jpg"
                   alt="Profile"
                   className="hp-profile-mini me-2"
-                  style={{width: "30px", height: "30px"}}
+                  style={{width: "25px", height: "25px"}}
                 />
-                <strong className="hp-username me-2">{comment.user?.username || "User"}:</strong>
-                <span>{comment.content}</span>
+                <strong className="hp-username me-2">{reply.user?.username || "User"}:</strong>
+                <span>{reply.content}</span>
               </div>
               <small className="text-muted">
-                {new Date(comment.createdAt).toLocaleString()}
+                {new Date(reply.createdAt).toLocaleString()}
               </small>
             </div>
           ))}
-        </section>
+        </div>
       )}
     </article>
   );
