@@ -1,21 +1,32 @@
 // src/components/About.jsx
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext.jsx";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const About = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   useEffect(() => {
     // Load Bootstrap JS for navbar toggler and toast
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
     script.async = true;
     document.body.appendChild(script);
+
+    return () => {
+      // Clean up the script when component unmounts
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("auth");
-    navigate("/login");
+    logout();
+    navigate("/");
   };
 
   const handleJoinClick = () => {
@@ -28,17 +39,21 @@ const About = () => {
     toastEl.innerHTML = `
       <div class="d-flex">
         <div class="toast-body">
-          ✅ You’ve successfully joined Filter X. Welcome aboard!
+          ✅ You've successfully joined Filter X. Welcome aboard!
         </div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
       </div>
     `;
     document.body.appendChild(toastEl);
-    new window.bootstrap.Toast(toastEl).show();
+
+    // Check if Bootstrap is available before creating toast
+    if (window.bootstrap) {
+      new window.bootstrap.Toast(toastEl).show();
+    }
   };
 
   return (
-    <div style={{ fontFamily: "Inter, sans-serif", backgroundColor: "#fdfaf6", color: "#333" }}>
+    <div style={{ fontFamily: "Inter, sans-serif", backgroundColor: "#fdfaf6", color: "#333", minHeight: "100vh" }}>
       {/* Inline Styles */}
       <style>{`
         h1,h2,h3 { font-family: "Merriweather", serif; color:#2c3e50; }
@@ -47,6 +62,8 @@ const About = () => {
         .navbar-custom .navbar-brand i { font-size:1.8rem; }
         .navbar-custom .nav-link { color:#fdfaf6; font-weight:600; transition: color 0.3s ease; }
         .navbar-custom .nav-link:hover { color:#d4af37; }
+        .navbar-custom .navbar-toggler { border: 1px solid #d4af37; }
+        .navbar-custom .navbar-toggler:focus { box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25); }
         .hero { text-align:center; padding:100px 20px 80px; background: linear-gradient(135deg,#fefdc7,#fffde0,#feeec7); border-radius:0 0 50% 50% / 20%; position:relative; overflow:hidden; }
         .hero h1 { font-size:3rem; font-weight:700; color:#0b2545; }
         .hero p { max-width:700px; margin:15px auto; font-size:1.2rem; color:#1a1a1a; }
@@ -61,22 +78,31 @@ const About = () => {
       `}</style>
 
       {/* Sticky Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-custom" 
+      <nav className="navbar navbar-expand-lg navbar-custom"
            style={{ position: 'sticky', top: 0, zIndex: 1030 }}>
         <div className="container">
-          <Link className="navbar-brand" to="/">
+          <Link className="navbar-brand" to="/home">
             <i className="bi bi-mortarboard-fill"></i>
             Filter X
           </Link>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <i className="bi bi-list" style={{ color: "#d4af37", fontSize: "1.25rem" }}></i>
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+            style={{ borderColor: "#d4af37" }}
+          >
+            <i className="bi bi-list" style={{ color: "#d4af37", fontSize: "1.5rem" }}></i>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto align-items-lg-center">
               <li className="nav-item"><Link className="nav-link" to="/home">Home</Link></li>
               <li className="nav-item"><Link className="nav-link text-warning" to="/about">About</Link></li>
               <li className="nav-item"><Link className="nav-link" to="/profile">Profile</Link></li>
-              <li className="nav-item"><a className="hp-nav-link nav-link" href="#" onClick={handleLogout}>Logout</a></li>
+              <li className="nav-item"><a className="nav-link" href="#" onClick={handleLogout}>Logout</a></li>
             </ul>
           </div>
         </div>
@@ -86,8 +112,8 @@ const About = () => {
       <section className="hero">
         <h1>Filter X</h1>
         <p>
-          A platform where learning meets innovation. We are dedicated to making 
-          education accessible, engaging, and empowering for students, educators, 
+          A platform where learning meets innovation. We are dedicated to making
+          education accessible, engaging, and empowering for students, educators,
           and lifelong learners worldwide.
         </p>
       </section>
@@ -96,8 +122,8 @@ const About = () => {
       <div className="container my-5">
         <h2 className="section-title"><i className="bi bi-bullseye"></i> Our Mission</h2>
         <p className="text-center mx-auto" style={{ maxWidth: "800px" }}>
-          Our mission is to bridge the gap between traditional education and digital learning. 
-          We aim to foster curiosity, critical thinking, and collaboration through a platform 
+          Our mission is to bridge the gap between traditional education and digital learning.
+          We aim to foster curiosity, critical thinking, and collaboration through a platform
           that empowers learners to grow academically and personally.
         </p>
       </div>
@@ -143,9 +169,9 @@ const About = () => {
       <div className="container my-5 text-center">
         <h2 className="section-title"><i className="bi bi-people"></i> Why Choose Filter X?</h2>
         <p className="mx-auto" style={{ maxWidth: "800px" }}>
-          We go beyond traditional learning. Filter X is not just a platform — it’s a community. 
-          With us, learners experience personalized growth, educators reach more students, and 
-          knowledge becomes truly global. 
+          We go beyond traditional learning. Filter X is not just a platform — it's a community.
+          With us, learners experience personalized growth, educators reach more students, and
+          knowledge becomes truly global.
         </p>
       </div>
 
@@ -153,7 +179,7 @@ const About = () => {
       <div className="container my-5 text-center">
         <h2 className="section-title"><i className="bi bi-envelope-fill"></i> Contact Us</h2>
         <p className="mx-auto" style={{ maxWidth: "800px" }}>
-          Have questions or suggestions? Reach out to us and we’ll get back to you soon.
+          Have questions or suggestions? Reach out to us and we'll get back to you soon.
         </p>
         <div className="row justify-content-center my-4">
           <div className="col-md-4 mb-3">

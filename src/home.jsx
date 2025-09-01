@@ -12,6 +12,20 @@ function Home({ user }) {
   const navigate = useNavigate();
   const { logout: authLogout } = useAuth();
 
+  // Load Bootstrap JS for navbar toggler
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   // Load posts from backend on component mount
   useEffect(() => {
     loadPosts();
@@ -174,14 +188,16 @@ function Home({ user }) {
               <i className="bi bi-mortarboard-fill"></i> Filter X
             </Link>
             <button
-              className="hp-navbar-toggler navbar-toggler"
+              className="navbar-toggler"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#navbarNav"
               aria-controls="navbarNav"
               aria-expanded="false"
-              aria-label="Toggle navigation">
-              <i className="bi bi-list" style={{ color: "var(--hp-gold)", fontSize: "1.25rem" }}></i>
+              aria-label="Toggle navigation"
+              style={{ borderColor: "#d4af37" }}
+            >
+              <i className="bi bi-list" style={{ color: "#d4af37", fontSize: "1.5rem" }}></i>
             </button>
             <div className="collapse navbar-collapse" id="navbarNav">
               <ul className="hp-navbar-nav navbar-nav ms-auto align-items-lg-center">
@@ -197,7 +213,7 @@ function Home({ user }) {
                 </li>
                 <li className="hp-nav-item nav-item">
                   <Link className="hp-nav-link nav-link" to="/profile">
-                    <i className="me-1"></i>Profile
+                    Profile
                   </Link>
                 </li>
                 <li className="hp-nav-item nav-item">
@@ -264,7 +280,7 @@ function Home({ user }) {
                   handleReplyToComment={handleReplyToComment}
                 />
               ))}
-              
+
               {posts.length === 0 && (
                 <div className="hp-glass-card text-center py-5 d-flex flex-column justify-content-center">
                   <i className="bi bi-chat-square-text display-4 text-muted mb-3"></i>
@@ -307,8 +323,8 @@ function Post({ post, user, handleCommentPost, handleLikePost, handleLikeComment
       </div>
       <p>{post.content}</p>
       <div className="d-flex gap-2 flex-wrap hp-action-buttons mb-3">
-        <button 
-          className="hp-btn hp-btn-outline-success hp-btn-outline-custom btn btn-sm" 
+        <button
+          className="hp-btn hp-btn-outline-success hp-btn-outline-custom btn btn-sm"
           title="Like"
           onClick={() => handleLikePost(post.id)}
         >
@@ -358,9 +374,9 @@ function Post({ post, user, handleCommentPost, handleLikePost, handleLikeComment
         )}
 
         {post.comments?.map((comment) => (
-          <Comment 
-            key={comment.id} 
-            comment={comment} 
+          <Comment
+            key={comment.id}
+            comment={comment}
             onLikeComment={handleLikeComment}
             onReplyToComment={handleReplyToComment}
           />
@@ -401,8 +417,8 @@ function Comment({ comment, onLikeComment, onReplyToComment }) {
 
       {/* Comment Actions */}
       <div className="d-flex gap-2 mt-2">
-        <button 
-          className="hp-btn hp-btn-outline-success btn-sm" 
+        <button
+          className="hp-btn hp-btn-outline-success btn-sm"
           title="Like comment"
           onClick={() => onLikeComment(comment.id)}
         >

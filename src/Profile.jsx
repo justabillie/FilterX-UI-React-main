@@ -12,6 +12,20 @@ function Profile() {
   const [postText, setPostText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load Bootstrap JS for navbar toggler
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -23,7 +37,7 @@ function Profile() {
 
   const loadUserPosts = async () => {
     if (!user) return;
-    
+
     try {
       const response = await fetch(`http://localhost:8080/api/social/posts/user/${user.id}`);
       if (response.ok) {
@@ -196,7 +210,7 @@ function Profile() {
                 </li>
                 <li className="hp-nav-item nav-item">
                   <span className="hp-nav-link nav-link text-warning">
-                    <i className="me-1"></i>Profile
+                    Profile
                   </span>
                 </li>
                 <li className="hp-nav-item nav-item">
@@ -225,22 +239,23 @@ function Profile() {
                 <div className="hp-username">{user?.username || "User"}</div>
                 <div className="hp-meta">{user?.email || ""}</div>
                 <div className="hp-meta">{user?.fullName || ""}</div>
-                <div className="hp-meta">
-                  <i className="bi bi-postcard me-1"></i>
-                  {userPosts.length} {userPosts.length === 1 ? 'post' : 'posts'}
-                </div>
+              </div>
+              <div className="ms-auto">
+                <button className="hp-btn hp-btn-outline-custom btn">
+                  Edit Profile
+                </button>
               </div>
             </section>
 
-            {/* Create Post Box */}
+            {/* Post Box */}
             <section className="hp-glass-card mb-4">
-              <h5 className="mb-3">Create a New Post</h5>
               <textarea
+                id="hp-postText"
                 placeholder="What's on your mind?"
-                rows="3"
+                rows="4"
                 value={postText}
                 onChange={(e) => setPostText(e.target.value)}
-                className="w-100 form-control"
+                className="w-100"
               ></textarea>
               <div className="d-flex justify-content-end mt-3">
                 <button onClick={handlePost} className="hp-btn hp-btn-glass btn">
@@ -249,25 +264,26 @@ function Profile() {
               </div>
             </section>
 
-            {/* User's Posts */}
+            {/* User Posts */}
             <section className="hp-posts-container">
-              <h4 className="mb-4">My Posts</h4>
+              <h3 className="mb-4">My Posts ({userPosts.length})</h3>
 
               {userPosts.length > 0 ? (
                 userPosts.map((post) => (
-                  <UserPost
+                  <ProfilePost
                     key={post.id}
                     post={post}
-                    onDelete={handleDeletePost}
-                    onComment={handleCommentPost}
-                    onLike={handleLikePost}
+                    user={user}
+                    onDeletePost={handleDeletePost}
+                    onLikePost={handleLikePost}
+                    onCommentPost={handleCommentPost}
                   />
                 ))
               ) : (
                 <div className="hp-glass-card text-center py-5 d-flex flex-column justify-content-center">
                   <i className="bi bi-chat-square-text display-4 text-muted mb-3"></i>
                   <h5 className="mt-3">No posts yet</h5>
-                  <p className="text-muted">Start sharing your thoughts!</p>
+                  <p className="text-muted">Share your thoughts with the community!</p>
                 </div>
               )}
             </section>
@@ -278,48 +294,46 @@ function Profile() {
   );
 }
 
-function UserPost({ post, onDelete, onComment, onLike }) {
+function ProfilePost({ post, user, onDeletePost, onLikePost, onCommentPost }) {
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [commentText, setCommentText] = useState("");
 
   const submitComment = () => {
     if (commentText.trim()) {
-      onComment(post.id, commentText);
+      onCommentPost(post.id, commentText);
       setCommentText("");
       setShowCommentBox(false);
     }
   };
 
   return (
-    <article className="hp-glass-card hp-post mb-3">
+    <article className="hp-glass-card hp-post mb-3 position-relative">
+      <button
+        className="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2"
+        onClick={() => onDeletePost(post.id)}
+        title="Delete post"
+      >
+        <i className="bi bi-trash"></i>
+      </button>
+
       <div className="d-flex align-items-center mb-3">
         <img
           src="https://i.pinimg.com/736x/54/c7/c3/54c7c36c20ced3eb982c4e3e21f465fe.jpg"
           alt="Profile"
           className="hp-profile-mini me-2"
         />
-        <div className="flex-grow-1">
-          <strong className="hp-username">You</strong>
-          <small className="text-muted ms-2">
-            {new Date(post.createdAt).toLocaleString()}
-          </small>
-        </div>
-        <button
-          className="hp-btn hp-btn-outline-danger btn-sm"
-          onClick={() => onDelete(post.id)}
-          title="Delete post"
-        >
-          <i className="bi bi-trash"></i>
-        </button>
+        <strong className="hp-username">{user?.username || "User"}</strong>
+        <small className="text-muted ms-auto">
+          {new Date(post.createdAt).toLocaleString()}
+        </small>
       </div>
       <p>{post.content}</p>
 
-      {/* Like and Comment Buttons */}
       <div className="d-flex gap-2 flex-wrap hp-action-buttons mb-3">
         <button
           className="hp-btn hp-btn-outline-success hp-btn-outline-custom btn btn-sm"
           title="Like"
-          onClick={() => onLike(post.id)}
+          onClick={() => onLikePost(post.id)}
         >
           <i className="bi bi-hand-thumbs-up"></i> Like ({post.likes?.length || 0})
         </button>
@@ -332,9 +346,9 @@ function UserPost({ post, onDelete, onComment, onLike }) {
         </button>
       </div>
 
-      {/* Comment Box */}
+      {/* Comment Box - Only shown when toggled */}
       {showCommentBox && (
-        <section className="hp-comment-box mb-3">
+        <section className="hp-comment-box mt-3">
           <textarea
             className="form-control mb-2"
             placeholder="Write a comment..."
@@ -366,18 +380,17 @@ function UserPost({ post, onDelete, onComment, onLike }) {
         </section>
       )}
 
-      {/* Comments Preview */}
+      {/* Comments */}
       {post.comments && post.comments.length > 0 && (
-        <div className="mt-3">
-          <h6 className="text-muted mb-2">Comments:</h6>
+        <section className="hp-comments mt-3">
           {post.comments.map((comment) => (
-            <div key={comment.id} className="hp-comment mb-2">
+            <div key={comment.id} className="hp-comment mb-2 p-2 border rounded">
               <div className="d-flex align-items-center">
                 <img
                   src="https://i.pinimg.com/736x/54/c7/c3/54c7c36c20ced3eb982c4e3e21f465fe.jpg"
                   alt="Profile"
                   className="hp-profile-mini me-2"
-                  style={{width: "25px", height: "25px"}}
+                  style={{width: "30px", height: "30px"}}
                 />
                 <strong className="hp-username me-2">{comment.user?.username || "User"}:</strong>
                 <span>{comment.content}</span>
@@ -387,7 +400,7 @@ function UserPost({ post, onDelete, onComment, onLike }) {
               </small>
             </div>
           ))}
-        </div>
+        </section>
       )}
     </article>
   );
