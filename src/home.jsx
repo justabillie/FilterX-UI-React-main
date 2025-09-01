@@ -186,7 +186,7 @@ function Home({ user }) {
             <div className="collapse navbar-collapse" id="navbarNav">
               <ul className="hp-navbar-nav navbar-nav ms-auto align-items-lg-center">
                 <li className="hp-nav-item nav-item">
-                  <Link className="hp-nav-link nav-link" to="/home">
+                  <Link className="hp-nav-link nav-link text-warning" to="/home">
                     Home
                   </Link>
                 </li>
@@ -197,7 +197,7 @@ function Home({ user }) {
                 </li>
                 <li className="hp-nav-item nav-item">
                   <Link className="hp-nav-link nav-link" to="/profile">
-                    <i className="bi bi-person-circle me-1"></i>Profile
+                    <i className="me-1"></i>Profile
                   </Link>
                 </li>
                 <li className="hp-nav-item nav-item">

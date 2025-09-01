@@ -161,12 +161,27 @@ function Profile() {
   return (
     <div className="hp-container">
       <div className="hp-home d-flex flex-column min-vh-100">
-        {/* Navbar */}
+        {/* Navbar - FIXED WITH TOGGLE BUTTON */}
         <nav className="navbar navbar-expand-lg hp-navbar-custom" style={{ position: "sticky", top: 0, zIndex: 1030 }}>
           <div className="container">
             <Link className="hp-navbar-brand navbar-brand" to="/home">
               <i className="bi bi-mortarboard-fill"></i> Filter X
             </Link>
+
+            {/* ADDED NAVBAR TOGGLE BUTTON */}
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+              style={{ borderColor: "#d4af37" }}
+            >
+              <i className="bi bi-list" style={{ color: "#d4af37", fontSize: "1.5rem" }}></i>
+            </button>
+
             <div className="collapse navbar-collapse" id="navbarNav">
               <ul className="hp-navbar-nav navbar-nav ms-auto align-items-lg-center">
                 <li className="hp-nav-item nav-item">
@@ -181,7 +196,7 @@ function Profile() {
                 </li>
                 <li className="hp-nav-item nav-item">
                   <span className="hp-nav-link nav-link text-warning">
-                    <i className="bi bi-person-circle me-1"></i>My Profile
+                    <i className="me-1"></i>Profile
                   </span>
                 </li>
                 <li className="hp-nav-item nav-item">

@@ -74,7 +74,7 @@ const About = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto align-items-lg-center">
               <li className="nav-item"><Link className="nav-link" to="/home">Home</Link></li>
-              <li className="nav-item"><Link className="nav-link" to="/about">About</Link></li>
+              <li className="nav-item"><Link className="nav-link text-warning" to="/about">About</Link></li>
               <li className="nav-item"><Link className="nav-link" to="/profile">Profile</Link></li>
               <li className="nav-item"><a className="hp-nav-link nav-link" href="#" onClick={handleLogout}>Logout</a></li>
             </ul>
