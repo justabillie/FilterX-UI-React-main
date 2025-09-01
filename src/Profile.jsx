@@ -69,10 +69,27 @@ function Profile() {
   const handleDeletePost = async (postId) => {
     if (window.confirm("Are you sure you want to delete this post?")) {
       try {
-        // Note: You'll need to add a delete endpoint in the backend
-        // For now, we'll just filter it out from the UI
-        setUserPosts(userPosts.filter(post => post.id !== postId));
-        alert("Post deleted successfully");
+        const userData = JSON.parse(localStorage.getItem("user"));
+
+        const response = await fetch(`http://localhost:8080/api/social/posts/${postId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: userData.id
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Remove the post from the UI
+          setUserPosts(userPosts.filter(post => post.id !== postId));
+          alert(result.message || "Post deleted successfully");
+        } else {
+          alert(result.error || "Failed to delete post");
+        }
       } catch (error) {
         console.error('Error deleting post:', error);
         alert("Error deleting post");
@@ -220,7 +237,7 @@ function Profile() {
             {/* User's Posts */}
             <section className="hp-posts-container">
               <h4 className="mb-4">My Posts</h4>
-              
+
               {userPosts.length > 0 ? (
                 userPosts.map((post) => (
                   <UserPost
@@ -281,11 +298,11 @@ function UserPost({ post, onDelete, onComment, onLike }) {
         </button>
       </div>
       <p>{post.content}</p>
-      
+
       {/* Like and Comment Buttons */}
       <div className="d-flex gap-2 flex-wrap hp-action-buttons mb-3">
-        <button 
-          className="hp-btn hp-btn-outline-success hp-btn-outline-custom btn btn-sm" 
+        <button
+          className="hp-btn hp-btn-outline-success hp-btn-outline-custom btn btn-sm"
           title="Like"
           onClick={() => onLike(post.id)}
         >
